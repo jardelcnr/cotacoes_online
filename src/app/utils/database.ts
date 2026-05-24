@@ -74,6 +74,10 @@ class ApiDatabase {
     });
   }
 
+  async deleteObraRequest(obraId: number): Promise<void> {
+    await this.request(`/api/obra-requests/${obraId}`, { method: 'DELETE' });
+  }
+
   async getAllObraRequests(): Promise<ObraRequest[]> {
     return this.request('/api/obra-requests');
   }
@@ -239,4 +243,3 @@ class ApiDatabase {
 }
 
 export const database = new ApiDatabase();
-

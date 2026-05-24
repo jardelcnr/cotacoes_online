@@ -110,6 +110,11 @@ app.put('/api/obra-requests/:id', asyncRoute(async (req, res) => {
   res.status(204).end();
 }));
 
+app.delete('/api/obra-requests/:id', asyncRoute(async (req, res) => {
+  await query('DELETE FROM obra_requests WHERE id = $1', [req.params.id]);
+  res.status(204).end();
+}));
+
 app.get('/api/obra-requests/by-numero/:numero', asyncRoute(async (req, res) => {
   const { rows } = await query('SELECT * FROM obra_requests WHERE numero_solicitacao = $1', [req.params.numero]);
   res.json(obraRow(rows[0]) || null);
@@ -431,4 +436,3 @@ app.use((error, _req, res, _next) => {
 app.listen(port, () => {
   console.log(`Servidor ouvindo na porta ${port}`);
 });
-

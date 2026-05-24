@@ -214,6 +214,31 @@ export function TelaObra({ onBack }: TelaObraProps) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleDelete = async (obra: ObraRequest) => {
+    if (!obra.id) return;
+
+    const confirmDelete = window.confirm(
+      `Deseja excluir a solicitacao ${obra.numeroSolicitacao}? Esta acao tambem remove itens, cotacoes e relatorios vinculados.`
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      await database.deleteObraRequest(obra.id);
+
+      if (editingObraId === obra.id) {
+        cancelEdit();
+      }
+
+      await loadObras();
+      setSuccess('Solicitacao excluida com sucesso!');
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      console.error('Erro ao excluir solicitacao:', error);
+      alert('Erro ao excluir solicitacao!');
+    }
+  };
+
   const handlePrintList = () => {
     window.print();
   };
@@ -469,6 +494,13 @@ export function TelaObra({ onBack }: TelaObraProps) {
                             title="Editar"
                           >
                             <Edit size={20} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(obra)}
+                            className="p-2 text-red-500 hover:text-red-700 transition-colors"
+                            title="Excluir"
+                          >
+                            <Trash2 size={20} />
                           </button>
                         </div>
                       </td>
