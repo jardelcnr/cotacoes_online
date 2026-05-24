@@ -12,13 +12,36 @@ import prumusUrl from '../imports/logo-prumus.png';
 
 type Screen = 'home' | 'login-obra' | 'obra' | 'fornecedor' | 'comparativo' | 'login-relatorio' | 'relatorio';
 
+const getScreenFromHash = (): Screen => {
+  return window.location.hash === '#fornecedor' ? 'fornecedor' : 'home';
+};
+
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>('home');
+  const [currentScreen, setCurrentScreen] = useState<Screen>(() => getScreenFromHash());
   const [dbInitialized, setDbInitialized] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordAction, setPasswordAction] = useState<'export' | 'import' | null>(null);
   const [password, setPassword] = useState('');
+
+  const navigateToScreen = (screen: Screen) => {
+    if (screen === 'fornecedor') {
+      window.history.replaceState(null, '', '#fornecedor');
+    } else if (window.location.hash === '#fornecedor') {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+
+    setCurrentScreen(screen);
+  };
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      setCurrentScreen(getScreenFromHash());
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   useEffect(() => {
     const initDatabase = async () => {
@@ -148,40 +171,40 @@ export default function App() {
   if (currentScreen === 'login-obra') {
     return (
       <LoginObra
-        onBack={() => setCurrentScreen('home')}
-        onLoginSuccess={() => setCurrentScreen('obra')}
+        onBack={() => navigateToScreen('home')}
+        onLoginSuccess={() => navigateToScreen('obra')}
       />
     );
   }
 
   if (currentScreen === 'obra') {
-    return <TelaObra onBack={() => setCurrentScreen('home')} />;
+    return <TelaObra onBack={() => navigateToScreen('home')} />;
   }
 
   if (currentScreen === 'fornecedor') {
     return (
       <TelaFornecedor
-        onBack={() => setCurrentScreen('home')}
-        onGoToComparativo={() => setCurrentScreen('comparativo')}
+        onBack={() => navigateToScreen('home')}
+        onGoToComparativo={() => navigateToScreen('comparativo')}
       />
     );
   }
 
   if (currentScreen === 'comparativo') {
-    return <TelaComparativo onBack={() => setCurrentScreen('home')} />;
+    return <TelaComparativo onBack={() => navigateToScreen('home')} />;
   }
 
   if (currentScreen === 'login-relatorio') {
     return (
       <LoginRelatorio
-        onBack={() => setCurrentScreen('home')}
-        onLoginSuccess={() => setCurrentScreen('relatorio')}
+        onBack={() => navigateToScreen('home')}
+        onLoginSuccess={() => navigateToScreen('relatorio')}
       />
     );
   }
 
   if (currentScreen === 'relatorio') {
-    return <TelaRelatorio onBack={() => setCurrentScreen('home')} />;
+    return <TelaRelatorio onBack={() => navigateToScreen('home')} />;
   }
 
   return (
@@ -195,7 +218,7 @@ export default function App() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {/* Botão Obra */}
           <button
-            onClick={() => setCurrentScreen('login-obra')}
+            onClick={() => navigateToScreen('login-obra')}
             className="group relative overflow-hidden rounded-2xl p-8 transition-all duration-300 ease-out border-2 hover:scale-105 hover:shadow-2xl border-slate-200 bg-white hover:border-emerald-300"
           >
             <div className="flex flex-col items-center gap-4">
@@ -211,7 +234,7 @@ export default function App() {
 
           {/* Botão Fornecedor */}
           <button
-            onClick={() => setCurrentScreen('fornecedor')}
+            onClick={() => navigateToScreen('fornecedor')}
             className="group relative overflow-hidden rounded-2xl p-8 transition-all duration-300 ease-out border-2 hover:scale-105 hover:shadow-2xl border-slate-200 bg-white hover:border-blue-300"
           >
             <div className="flex flex-col items-center gap-4">
@@ -227,7 +250,7 @@ export default function App() {
 
           {/* Botão Comparativo */}
           <button
-            onClick={() => setCurrentScreen('comparativo')}
+            onClick={() => navigateToScreen('comparativo')}
             className="group relative overflow-hidden rounded-2xl p-8 transition-all duration-300 ease-out border-2 hover:scale-105 hover:shadow-2xl border-slate-200 bg-white hover:border-purple-300"
           >
             <div className="flex flex-col items-center gap-4">
@@ -243,7 +266,7 @@ export default function App() {
 
           {/* Botão Relatórios */}
           <button
-            onClick={() => setCurrentScreen('login-relatorio')}
+            onClick={() => navigateToScreen('login-relatorio')}
             className="group relative overflow-hidden rounded-2xl p-8 transition-all duration-300 ease-out border-2 hover:scale-105 hover:shadow-2xl border-slate-200 bg-white hover:border-orange-300"
           >
             <div className="flex flex-col items-center gap-4">
