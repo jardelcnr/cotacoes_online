@@ -1,4 +1,4 @@
-import { ArrowLeft, Printer, Save, Trash2, Plus, Edit } from 'lucide-react';
+import { ArrowLeft, Printer, Save, Trash2, Plus, Edit, Download } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { database, ObraRequest, ObraItem, SupplierOffer, OfferItem, SummaryReport } from '../utils/database';
 import logoUrl from '../../imports/logo.jpg';
@@ -21,6 +21,37 @@ interface ComparativoData {
     items: Map<number, OfferItem>; // Map<obraItemId, OfferItem>
   }[];
 }
+
+const PRINT_LANDSCAPE_STYLE_ID = 'comparativo-print-landscape';
+const PRINT_LANDSCAPE_STYLE = `
+  @media print {
+    @page {
+      size: A4 landscape;
+      margin: 1cm 1.5cm;
+    }
+
+    html,
+    body,
+    #root {
+      width: 297mm;
+      min-height: 210mm;
+    }
+  }
+`;
+
+const ensurePrintLandscapeStyle = () => {
+  if (typeof document === 'undefined') return;
+
+  let styleElement = document.getElementById(PRINT_LANDSCAPE_STYLE_ID);
+
+  if (!styleElement) {
+    styleElement = document.createElement('style');
+    styleElement.id = PRINT_LANDSCAPE_STYLE_ID;
+    document.head.appendChild(styleElement);
+  }
+
+  styleElement.textContent = PRINT_LANDSCAPE_STYLE;
+};
 
 export function TelaComparativo({ onBack }: TelaComparativoProps) {
   const [obras, setObras] = useState<ObraRequest[]>([]);
@@ -141,7 +172,13 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
   };
 
   const handlePrint = () => {
-    window.print();
+    ensurePrintLandscapeStyle();
+    requestAnimationFrame(() => window.print());
+  };
+
+  const handleSavePdf = () => {
+    ensurePrintLandscapeStyle();
+    requestAnimationFrame(() => window.print());
   };
 
   const handleSaveResume = async () => {
@@ -1343,6 +1380,14 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
                   <span>Imprimir</span>
                 </button>
                 <button
+                  onClick={handleSavePdf}
+                  className="flex items-center gap-2 px-6 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+                  title="Salvar como PDF em paisagem"
+                >
+                  <Download size={20} />
+                  <span>Salvar PDF</span>
+                </button>
+                <button
                   onClick={handleSaveResume}
                   className="flex items-center gap-2 px-6 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
                 >
@@ -1378,12 +1423,9 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
 
       {/* Estilos de impressão */}
       <style>{`
-        @media print {
-          @page {
-            size: landscape;
-            margin: 1cm 1.5cm;
-          }
+        ${PRINT_LANDSCAPE_STYLE}
 
+        @media print {
           .print\\:hidden {
             display: none !important;
           }
