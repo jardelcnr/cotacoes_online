@@ -1,4 +1,4 @@
-import { ArrowLeft, Printer, Save, Trash2, Plus, Edit, Download } from 'lucide-react';
+import { ArrowLeft, Printer, Save, Trash2, Plus, Edit } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { database, ObraRequest, ObraItem, SupplierOffer, OfferItem, SummaryReport } from '../utils/database';
 import logoUrl from '../../imports/logo.jpg';
@@ -51,6 +51,11 @@ const ensurePrintLandscapeStyle = () => {
   }
 
   styleElement.textContent = PRINT_LANDSCAPE_STYLE;
+};
+
+const openPrintDialogInLandscape = () => {
+  ensurePrintLandscapeStyle();
+  setTimeout(() => window.print(), 100);
 };
 
 export function TelaComparativo({ onBack }: TelaComparativoProps) {
@@ -172,13 +177,11 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
   };
 
   const handlePrint = () => {
-    ensurePrintLandscapeStyle();
-    requestAnimationFrame(() => window.print());
+    openPrintDialogInLandscape();
   };
 
   const handleSavePdf = () => {
-    ensurePrintLandscapeStyle();
-    requestAnimationFrame(() => window.print());
+    openPrintDialogInLandscape();
   };
 
   const handleSaveResume = async () => {
@@ -1384,8 +1387,8 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
                   className="flex items-center gap-2 px-6 py-3 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
                   title="Salvar como PDF em paisagem"
                 >
-                  <Download size={20} />
-                  <span>Salvar PDF</span>
+                  <Save size={20} />
+                  <span>Salvar em PDF</span>
                 </button>
                 <button
                   onClick={handleSaveResume}
