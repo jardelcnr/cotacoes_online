@@ -6,6 +6,7 @@ import logo2Url from '../../imports/logo-2.jpg';
 
 interface ItemWithValue extends ObraItem {
   valorUnitario: number;
+  valorUnitarioInput?: string;
   valorTotal: number;
 }
 
@@ -164,8 +165,21 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
     });
   };
 
+  const normalizeDecimalInput = (value: string): string => {
+    const normalized = value.replace(/\./g, ',').replace(/[^\d,]/g, '');
+    const [integerPart, ...decimalParts] = normalized.split(',');
+    const decimals = decimalParts.join('').slice(0, 4);
+
+    if (decimalParts.length === 0) return integerPart;
+    return `${integerPart || '0'},${decimals}`;
+  };
+
   const parseDecimalInput = (value: string): number => {
     return parseFloat(value.replace(',', '.')) || 0;
+  };
+
+  const formatDecimalInput = (value: number): string => {
+    return value === 0 ? '' : String(value).replace('.', ',');
   };
 
   const findLowestValueForItem = (obraItemId: number): number | null => {
@@ -355,7 +369,10 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
           setDescontoGeral(draftData.descontoGeral || 0);
 
           if (draftData.obraItemsWithValues && draftData.obraItemsWithValues.length > 0) {
-            setObraItemsWithValues(draftData.obraItemsWithValues);
+            setObraItemsWithValues(draftData.obraItemsWithValues.map((item: ItemWithValue) => ({
+              ...item,
+              valorUnitarioInput: item.valorUnitarioInput ?? formatDecimalInput(item.valorUnitario || 0),
+            })));
           }
 
           if (draftData.isEditing) {
@@ -394,6 +411,7 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
     const itemsWithValues: ItemWithValue[] = comparativoData.items.map(item => ({
       ...item,
       valorUnitario: 0,
+      valorUnitarioInput: '',
       valorTotal: 0
     }));
 
@@ -415,11 +433,14 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
     clearDraft();
   };
 
-  const updateItemValue = (itemId: number, valorUnitario: number) => {
+  const updateItemValue = (itemId: number, rawValue: string) => {
+    const valorUnitarioInput = normalizeDecimalInput(rawValue);
+    const valorUnitario = parseDecimalInput(valorUnitarioInput);
+
     setObraItemsWithValues(obraItemsWithValues.map(item => {
       if (item.id === itemId) {
         const valorTotal = valorUnitario * item.quantidade;
-        return { ...item, valorUnitario, valorTotal };
+        return { ...item, valorUnitario, valorUnitarioInput, valorTotal };
       }
       return item;
     }));
@@ -450,9 +471,11 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
     // Carregar itens com valores existentes
     const itemsWithValues: ItemWithValue[] = comparativoData.items.map(item => {
       const existingOfferItem = fornecedor.items.get(item.id!);
+      const valorUnitario = existingOfferItem?.valorUnitario || 0;
       return {
         ...item,
-        valorUnitario: existingOfferItem?.valorUnitario || 0,
+        valorUnitario,
+        valorUnitarioInput: formatDecimalInput(valorUnitario),
         valorTotal: existingOfferItem?.valorTotal || 0
       };
     });
@@ -698,8 +721,8 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
                           <input
                             type="text"
                             inputMode="decimal"
-                            value={item.valorUnitario === 0 ? '' : item.valorUnitario}
-                            onChange={(e) => updateItemValue(item.id!, parseDecimalInput(e.target.value))}
+                            value={item.valorUnitarioInput ?? formatDecimalInput(item.valorUnitario)}
+                            onChange={(e) => updateItemValue(item.id!, e.target.value)}
                             className="w-full px-2 py-1 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
                             placeholder="0,0000"
                           />
@@ -895,8 +918,8 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
                           <input
                             type="text"
                             inputMode="decimal"
-                            value={item.valorUnitario === 0 ? '' : item.valorUnitario}
-                            onChange={(e) => updateItemValue(item.id!, parseDecimalInput(e.target.value))}
+                            value={item.valorUnitarioInput ?? formatDecimalInput(item.valorUnitario)}
+                            onChange={(e) => updateItemValue(item.id!, e.target.value)}
                             className="w-full px-2 py-1 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                             placeholder="0,0000"
                           />

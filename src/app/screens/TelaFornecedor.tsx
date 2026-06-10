@@ -9,6 +9,7 @@ interface TelaFornecedorProps {
 
 interface ItemWithValue extends ObraItem {
   valorUnitario: number;
+  valorUnitarioInput?: string;
   valorTotal: number;
 }
 
@@ -75,17 +76,21 @@ export function TelaFornecedor({ onBack, onGoToComparativo }: TelaFornecedorProp
       const itemsWithValue: ItemWithValue[] = items.map(item => ({
         ...item,
         valorUnitario: 0,
+        valorUnitarioInput: '',
         valorTotal: 0
       }));
       setObraItems(itemsWithValue);
     }
   };
 
-  const updateItemValue = (itemId: number, valorUnitario: number) => {
+  const updateItemValue = (itemId: number, rawValue: string) => {
+    const valorUnitarioInput = normalizeDecimalInput(rawValue);
+    const valorUnitario = parseDecimalInput(valorUnitarioInput);
+
     setObraItems(obraItems.map(item => {
       if (item.id === itemId) {
         const valorTotal = valorUnitario * item.quantidade;
-        return { ...item, valorUnitario, valorTotal };
+        return { ...item, valorUnitario, valorUnitarioInput, valorTotal };
       }
       return item;
     }));
@@ -104,8 +109,21 @@ export function TelaFornecedor({ onBack, onGoToComparativo }: TelaFornecedorProp
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
+  const normalizeDecimalInput = (value: string): string => {
+    const normalized = value.replace(/\./g, ',').replace(/[^\d,]/g, '');
+    const [integerPart, ...decimalParts] = normalized.split(',');
+    const decimals = decimalParts.join('').slice(0, 4);
+
+    if (decimalParts.length === 0) return integerPart;
+    return `${integerPart || '0'},${decimals}`;
+  };
+
   const parseDecimalInput = (value: string): number => {
     return parseFloat(value.replace(',', '.')) || 0;
+  };
+
+  const formatDecimalInput = (value: number): string => {
+    return value === 0 ? '' : String(value).replace('.', ',');
   };
 
   const getOrdinalNumber = (num: number): string => {
@@ -185,7 +203,10 @@ export function TelaFornecedor({ onBack, onGoToComparativo }: TelaFornecedorProp
           setDescontoGeral(draftData.descontoGeral || 0);
 
           if (draftData.obraItems && draftData.obraItems.length > 0) {
-            setObraItems(draftData.obraItems);
+            setObraItems(draftData.obraItems.map((item: ItemWithValue) => ({
+              ...item,
+              valorUnitarioInput: item.valorUnitarioInput ?? formatDecimalInput(item.valorUnitario || 0),
+            })));
           }
 
           setHasDraft(true);
@@ -468,8 +489,8 @@ export function TelaFornecedor({ onBack, onGoToComparativo }: TelaFornecedorProp
                             <input
                               type="text"
                               inputMode="decimal"
-                              value={item.valorUnitario === 0 ? '' : item.valorUnitario}
-                              onChange={(e) => updateItemValue(item.id!, parseDecimalInput(e.target.value))}
+                              value={item.valorUnitarioInput ?? formatDecimalInput(item.valorUnitario)}
+                              onChange={(e) => updateItemValue(item.id!, e.target.value)}
                               className="w-full px-2 py-1 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                               placeholder="0,0000"
                             />
