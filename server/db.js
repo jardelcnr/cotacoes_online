@@ -44,6 +44,7 @@ export async function initSchema() {
       nome_obra TEXT NOT NULL,
       numero_solicitacao TEXT NOT NULL UNIQUE,
       tipos_produtos TEXT NOT NULL,
+      status_solicitacao TEXT NOT NULL DEFAULT 'Aberto',
       data_criacao TIMESTAMPTZ NOT NULL
     );
 
@@ -67,6 +68,7 @@ export async function initSchema() {
       condicao_pagamento TEXT NOT NULL DEFAULT '',
       prazo_orcamento TEXT NOT NULL DEFAULT '',
       prazo_entrega TEXT NOT NULL DEFAULT '',
+      observacoes TEXT NOT NULL DEFAULT '',
       frete_geral NUMERIC(14, 2) NOT NULL DEFAULT 0,
       desconto_geral NUMERIC(14, 2) NOT NULL DEFAULT 0,
       data_cotacao TIMESTAMPTZ NOT NULL
@@ -79,8 +81,8 @@ export async function initSchema() {
       id BIGSERIAL PRIMARY KEY,
       offer_id BIGINT NOT NULL REFERENCES supplier_offers(id) ON DELETE CASCADE,
       obra_item_id BIGINT NOT NULL REFERENCES obra_items(id) ON DELETE CASCADE,
-      valor_unitario NUMERIC(14, 2) NOT NULL DEFAULT 0,
-      valor_total NUMERIC(14, 2) NOT NULL DEFAULT 0,
+      valor_unitario NUMERIC(14, 4) NOT NULL DEFAULT 0,
+      valor_total NUMERIC(14, 4) NOT NULL DEFAULT 0,
       UNIQUE (offer_id, obra_item_id)
     );
 
@@ -104,5 +106,16 @@ export async function initSchema() {
       last_saved TIMESTAMPTZ NOT NULL
     );
   `);
-}
 
+  await query(`
+    ALTER TABLE obra_requests
+      ADD COLUMN IF NOT EXISTS status_solicitacao TEXT NOT NULL DEFAULT 'Aberto';
+
+    ALTER TABLE supplier_offers
+      ADD COLUMN IF NOT EXISTS observacoes TEXT NOT NULL DEFAULT '';
+
+    ALTER TABLE offer_items
+      ALTER COLUMN valor_unitario TYPE NUMERIC(14, 4),
+      ALTER COLUMN valor_total TYPE NUMERIC(14, 4);
+  `);
+}

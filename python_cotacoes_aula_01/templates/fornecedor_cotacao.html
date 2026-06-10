@@ -1,0 +1,125 @@
+<!DOCTYPE html> <!-- Informa ao navegador que este arquivo usa HTML5. -->
+<html lang="pt-br"> <!-- Abre a pagina HTML e informa que o idioma principal e portugues do Brasil. -->
+<head> <!-- Abre a area de configuracoes da pagina. -->
+    <meta charset="UTF-8"> <!-- Permite que acentos aparecam corretamente. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Ajuda a pagina a se adaptar a telas menores. -->
+    <title>Cotacao do Fornecedor</title> <!-- Define o titulo da aba do navegador. -->
+</head> <!-- Fecha a area de configuracoes da pagina. -->
+<body> <!-- Abre o corpo da pagina, onde fica o conteudo visivel. -->
+    <h1>Cotacao do Fornecedor</h1> <!-- Mostra o titulo principal da tela. -->
+
+    <p><a href="/fornecedor">Voltar para fornecedor</a></p> <!-- Cria um link para voltar para a escolha de obras. -->
+
+    <h2>{{ obra["nome_obra"] }}</h2> <!-- Mostra o nome da obra que esta sendo cotada. -->
+    <p>Solicitacao: {{ obra["numero_solicitacao"] }}</p> <!-- Mostra o numero da solicitacao da obra. -->
+    <p>Tipos de produtos: {{ obra["tipos_produtos"] }}</p> <!-- Mostra os tipos de produtos da obra. -->
+
+    {% if erro %} <!-- Verifica se o Python enviou alguma mensagem de erro. -->
+        <p style="color: red;">{{ erro }}</p> <!-- Mostra a mensagem de erro em vermelho. -->
+    {% endif %} <!-- Fecha a verificacao de erro. -->
+
+    {% if itens %} <!-- Verifica se existem itens para cotar. -->
+        <form action="/fornecedor/{{ obra['id'] }}/salvar" method="post"> <!-- Cria o formulario que envia a cotacao para o Flask. -->
+            <h2>Dados do fornecedor</h2> <!-- Mostra o titulo da area de dados do fornecedor. -->
+
+            <p> <!-- Abre um paragrafo para organizar o campo empresa. -->
+                <label for="nome_empresa">Nome da empresa:</label> <!-- Cria o texto explicando o campo empresa. -->
+                <input type="text" id="nome_empresa" name="nome_empresa"> <!-- Cria o campo onde o fornecedor digita o nome da empresa. -->
+            </p> <!-- Fecha o paragrafo do campo empresa. -->
+
+            <p> <!-- Abre um paragrafo para organizar o campo vendedor. -->
+                <label for="nome_vendedor">Nome do vendedor:</label> <!-- Cria o texto explicando o campo vendedor. -->
+                <input type="text" id="nome_vendedor" name="nome_vendedor"> <!-- Cria o campo onde o fornecedor digita o nome do vendedor. -->
+            </p> <!-- Fecha o paragrafo do campo vendedor. -->
+
+            <p> <!-- Abre um paragrafo para organizar o campo pagamento. -->
+                <label for="condicao_pagamento">Condicao de pagamento:</label> <!-- Cria o texto explicando o campo pagamento. -->
+                <input type="text" id="condicao_pagamento" name="condicao_pagamento"> <!-- Cria o campo onde o fornecedor digita a condicao de pagamento. -->
+            </p> <!-- Fecha o paragrafo do campo pagamento. -->
+
+            <p> <!-- Abre um paragrafo para organizar o campo prazo do orcamento. -->
+                <label for="prazo_orcamento">Prazo do orcamento:</label> <!-- Cria o texto explicando o campo prazo do orcamento. -->
+                <input type="text" id="prazo_orcamento" name="prazo_orcamento"> <!-- Cria o campo onde o fornecedor digita a validade do orcamento. -->
+            </p> <!-- Fecha o paragrafo do prazo do orcamento. -->
+
+            <p> <!-- Abre um paragrafo para organizar o campo prazo de entrega. -->
+                <label for="prazo_entrega">Prazo de entrega:</label> <!-- Cria o texto explicando o campo prazo de entrega. -->
+                <input type="text" id="prazo_entrega" name="prazo_entrega"> <!-- Cria o campo onde o fornecedor digita o prazo de entrega. -->
+            </p> <!-- Fecha o paragrafo do prazo de entrega. -->
+
+            <h2>Itens para cotar</h2> <!-- Mostra o titulo da area de itens. -->
+
+            <table border="1" cellpadding="8"> <!-- Cria uma tabela simples para os itens da cotacao. -->
+                <thead> <!-- Abre o cabecalho da tabela. -->
+                    <tr> <!-- Cria uma linha de cabecalho. -->
+                        <th>Produto ou servico</th> <!-- Cria a coluna do produto ou servico. -->
+                        <th>Unidade</th> <!-- Cria a coluna da unidade. -->
+                        <th>Quantidade</th> <!-- Cria a coluna da quantidade. -->
+                        <th>Valor unitario</th> <!-- Cria a coluna do valor unitario. -->
+                    </tr> <!-- Fecha a linha de cabecalho. -->
+                </thead> <!-- Fecha o cabecalho da tabela. -->
+                <tbody> <!-- Abre o corpo da tabela. -->
+                    {% for item in itens %} <!-- Inicia um loop para criar um campo de preco para cada item. -->
+                        <tr> <!-- Cria uma linha da tabela para o item. -->
+                            <td>{{ item["produto"] }}</td> <!-- Mostra o nome do produto ou servico. -->
+                            <td>{{ item["unidade"] }}</td> <!-- Mostra a unidade do item. -->
+                            <td>{{ item["quantidade"] }}</td> <!-- Mostra a quantidade que sera cotada. -->
+                            <td><input type="text" name="valor_unitario_{{ item['id'] }}"></td> <!-- Cria o campo de valor unitario usando o ID do item no nome. -->
+                        </tr> <!-- Fecha a linha do item. -->
+                    {% endfor %} <!-- Finaliza o loop de itens. -->
+                </tbody> <!-- Fecha o corpo da tabela. -->
+            </table> <!-- Fecha a tabela de itens. -->
+
+            <h2>Frete e desconto</h2> <!-- Mostra o titulo da area de valores gerais. -->
+
+            <p> <!-- Abre um paragrafo para organizar o campo frete. -->
+                <label for="frete">Frete:</label> <!-- Cria o texto explicando o campo frete. -->
+                <input type="text" id="frete" name="frete" value="0"> <!-- Cria o campo onde o fornecedor informa o frete. -->
+            </p> <!-- Fecha o paragrafo do campo frete. -->
+
+            <p> <!-- Abre um paragrafo para organizar o campo desconto. -->
+                <label for="desconto">Desconto:</label> <!-- Cria o texto explicando o campo desconto. -->
+                <input type="text" id="desconto" name="desconto" value="0"> <!-- Cria o campo onde o fornecedor informa o desconto. -->
+            </p> <!-- Fecha o paragrafo do campo desconto. -->
+
+            <button type="submit">Enviar cotacao</button> <!-- Cria o botao que envia a cotacao para o Flask. -->
+        </form> <!-- Fecha o formulario da cotacao. -->
+    {% else %} <!-- Caso a obra nao tenha itens. -->
+        <p>Esta obra ainda nao possui itens cadastrados.</p> <!-- Mostra uma mensagem explicando que nao ha itens para cotar. -->
+    {% endif %} <!-- Fecha a verificacao de itens. -->
+
+    <h2>Cotacoes ja enviadas</h2> <!-- Mostra o titulo da lista de cotacoes enviadas. -->
+
+    {% if cotacoes %} <!-- Verifica se existe alguma cotacao para esta obra. -->
+        <table border="1" cellpadding="8"> <!-- Cria uma tabela simples com as cotacoes. -->
+            <thead> <!-- Abre o cabecalho da tabela. -->
+                <tr> <!-- Cria uma linha de cabecalho. -->
+                    <th>Empresa</th> <!-- Cria a coluna da empresa. -->
+                    <th>Vendedor</th> <!-- Cria a coluna do vendedor. -->
+                    <th>Total produtos</th> <!-- Cria a coluna do total dos produtos. -->
+                    <th>Frete</th> <!-- Cria a coluna do frete. -->
+                    <th>Desconto</th> <!-- Cria a coluna do desconto. -->
+                    <th>Valor final</th> <!-- Cria a coluna do valor final. -->
+                    <th>Data</th> <!-- Cria a coluna da data da cotacao. -->
+                </tr> <!-- Fecha a linha de cabecalho. -->
+            </thead> <!-- Fecha o cabecalho da tabela. -->
+            <tbody> <!-- Abre o corpo da tabela. -->
+                {% for cotacao in cotacoes %} <!-- Inicia um loop para mostrar cada cotacao enviada. -->
+                    <tr> <!-- Cria uma linha para uma cotacao. -->
+                        <td>{{ cotacao["nome_empresa"] }}</td> <!-- Mostra o nome da empresa. -->
+                        <td>{{ cotacao["nome_vendedor"] }}</td> <!-- Mostra o nome do vendedor. -->
+                        <td>R$ {{ "%.2f"|format(cotacao["total_produtos"]) }}</td> <!-- Mostra o total dos produtos com duas casas decimais. -->
+                        <td>R$ {{ "%.2f"|format(cotacao["frete"]) }}</td> <!-- Mostra o frete com duas casas decimais. -->
+                        <td>R$ {{ "%.2f"|format(cotacao["desconto"]) }}</td> <!-- Mostra o desconto com duas casas decimais. -->
+                        <td>R$ {{ "%.2f"|format(cotacao["valor_final"]) }}</td> <!-- Mostra o valor final com duas casas decimais. -->
+                        <td>{{ cotacao["data_cotacao"] }}</td> <!-- Mostra a data em que a cotacao foi enviada. -->
+                    </tr> <!-- Fecha a linha da cotacao. -->
+                {% endfor %} <!-- Finaliza o loop de cotacoes. -->
+            </tbody> <!-- Fecha o corpo da tabela. -->
+        </table> <!-- Fecha a tabela de cotacoes. -->
+    {% else %} <!-- Caso ainda nao exista cotacao enviada. -->
+        <p>Nenhuma cotacao enviada para esta obra ainda.</p> <!-- Mostra uma mensagem simples para o usuario. -->
+    {% endif %} <!-- Fecha a verificacao de cotacoes. -->
+</body> <!-- Fecha o corpo da pagina. -->
+</html> <!-- Fecha o documento HTML. -->
+

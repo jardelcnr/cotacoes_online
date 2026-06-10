@@ -23,6 +23,7 @@ export function TelaFornecedor({ onBack, onGoToComparativo }: TelaFornecedorProp
   const [condicaoPagamento, setCondicaoPagamento] = useState('');
   const [prazoOrcamento, setPrazoOrcamento] = useState('');
   const [prazoEntrega, setPrazoEntrega] = useState('');
+  const [observacoes, setObservacoes] = useState('');
   const [freteGeral, setFreteGeral] = useState(0);
   const [descontoGeral, setDescontoGeral] = useState(0);
 
@@ -53,7 +54,7 @@ export function TelaFornecedor({ onBack, onGoToComparativo }: TelaFornecedorProp
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [selectedObra, nomeEmpresa, nomeVendedor, condicaoPagamento, prazoOrcamento, prazoEntrega, freteGeral, descontoGeral, obraItems]);
+  }, [selectedObra, nomeEmpresa, nomeVendedor, condicaoPagamento, prazoOrcamento, prazoEntrega, observacoes, freteGeral, descontoGeral, obraItems]);
 
   const loadObras = async () => {
     const allObras = await database.getAllObraRequests();
@@ -103,6 +104,10 @@ export function TelaFornecedor({ onBack, onGoToComparativo }: TelaFornecedorProp
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
+  const parseDecimalInput = (value: string): number => {
+    return parseFloat(value.replace(',', '.')) || 0;
+  };
+
   const getOrdinalNumber = (num: number): string => {
     if (num === 1) return '1º';
     if (num === 2) return '2º';
@@ -135,6 +140,7 @@ export function TelaFornecedor({ onBack, onGoToComparativo }: TelaFornecedorProp
         condicaoPagamento,
         prazoOrcamento,
         prazoEntrega,
+        observacoes,
         freteGeral,
         descontoGeral,
         obraItems
@@ -174,6 +180,7 @@ export function TelaFornecedor({ onBack, onGoToComparativo }: TelaFornecedorProp
           setCondicaoPagamento(draftData.condicaoPagamento || '');
           setPrazoOrcamento(draftData.prazoOrcamento || '');
           setPrazoEntrega(draftData.prazoEntrega || '');
+          setObservacoes(draftData.observacoes || '');
           setFreteGeral(draftData.freteGeral || 0);
           setDescontoGeral(draftData.descontoGeral || 0);
 
@@ -225,6 +232,7 @@ export function TelaFornecedor({ onBack, onGoToComparativo }: TelaFornecedorProp
         condicaoPagamento,
         prazoOrcamento,
         prazoEntrega,
+        observacoes,
         freteGeral,
         descontoGeral,
         dataCotacao: new Date().toISOString()
@@ -306,7 +314,7 @@ export function TelaFornecedor({ onBack, onGoToComparativo }: TelaFornecedorProp
               <option value="">Selecione uma obra</option>
               {obras.map(obra => (
                 <option key={obra.id} value={obra.numeroSolicitacao}>
-                  {obra.numeroSolicitacao} - {obra.nomeObra} - {obra.tiposProdutos}
+                  [{obra.statusSolicitacao || 'Aberto'}] {obra.numeroSolicitacao} - {obra.nomeObra} - {obra.tiposProdutos}
                 </option>
               ))}
             </select>
@@ -317,7 +325,7 @@ export function TelaFornecedor({ onBack, onGoToComparativo }: TelaFornecedorProp
               {/* Informações da Obra */}
               <div className="mb-8 p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <h3 className="text-lg text-slate-900 mb-2">Informações da Obra</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                   <div>
                     <span className="text-slate-600">Nome da Obra:</span>
                     <p className="text-slate-900">{selectedObra.nomeObra}</p>
@@ -325,6 +333,10 @@ export function TelaFornecedor({ onBack, onGoToComparativo }: TelaFornecedorProp
                   <div>
                     <span className="text-slate-600">Número da Solicitação:</span>
                     <p className="text-slate-900">{selectedObra.numeroSolicitacao}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-600">Status:</span>
+                    <p className="text-slate-900">{selectedObra.statusSolicitacao || 'Aberto'}</p>
                   </div>
                   <div>
                     <span className="text-slate-600">Tipos de Produtos:</span>
@@ -401,6 +413,18 @@ export function TelaFornecedor({ onBack, onGoToComparativo }: TelaFornecedorProp
                       placeholder="Ex: 30 dias"
                     />
                   </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm text-slate-700 mb-2">
+                      ObservaÃ§Ãµes
+                    </label>
+                    <textarea
+                      value={observacoes}
+                      onChange={(e) => setObservacoes(e.target.value)}
+                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-24"
+                      placeholder="ObservaÃ§Ãµes da cotaÃ§Ã£o"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -442,13 +466,12 @@ export function TelaFornecedor({ onBack, onGoToComparativo }: TelaFornecedorProp
                           </td>
                           <td className="px-4 py-3 border border-slate-200">
                             <input
-                              type="number"
+                              type="text"
+                              inputMode="decimal"
                               value={item.valorUnitario === 0 ? '' : item.valorUnitario}
-                              onChange={(e) => updateItemValue(item.id!, parseFloat(e.target.value) || 0)}
+                              onChange={(e) => updateItemValue(item.id!, parseDecimalInput(e.target.value))}
                               className="w-full px-2 py-1 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                              placeholder="0.00"
-                              min="0"
-                              step="0.01"
+                              placeholder="0,0000"
                             />
                           </td>
                           <td className="px-4 py-3 border border-slate-200 bg-slate-50">
@@ -524,6 +547,7 @@ export function TelaFornecedor({ onBack, onGoToComparativo }: TelaFornecedorProp
                     setCondicaoPagamento('');
                     setPrazoOrcamento('');
                     setPrazoEntrega('');
+                    setObservacoes('');
                     setFreteGeral(0);
                     setDescontoGeral(0);
                     clearDraft();

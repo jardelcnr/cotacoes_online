@@ -16,10 +16,21 @@ interface ItemRow {
   orcamentoObra: number;
 }
 
+type StatusSolicitacao = ObraRequest['statusSolicitacao'];
+
+const STATUS_SOLICITACAO_OPTIONS: StatusSolicitacao[] = ['Aberto', 'Em Andamento', 'Fechado'];
+
+const getStatusClassName = (status: StatusSolicitacao = 'Aberto') => {
+  if (status === 'Fechado') return 'bg-slate-100 text-slate-700 border-slate-300';
+  if (status === 'Em Andamento') return 'bg-amber-50 text-amber-700 border-amber-200';
+  return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+};
+
 export function TelaObra({ onBack }: TelaObraProps) {
   const [nomeObra, setNomeObra] = useState('');
   const [numeroSolicitacao, setNumeroSolicitacao] = useState('');
   const [tiposProdutos, setTiposProdutos] = useState('');
+  const [statusSolicitacao, setStatusSolicitacao] = useState<StatusSolicitacao>('Aberto');
   const [items, setItems] = useState<ItemRow[]>([
     { tempId: '1', produto: '', unidade: '', quantidade: 1, orcamentoObra: 0 }
   ]);
@@ -89,6 +100,7 @@ export function TelaObra({ onBack }: TelaObraProps) {
           nomeObra,
           numeroSolicitacao,
           tiposProdutos,
+          statusSolicitacao,
           dataCriacao: new Date().toISOString()
         };
         await database.updateObraRequest(obra);
@@ -156,6 +168,7 @@ export function TelaObra({ onBack }: TelaObraProps) {
           nomeObra,
           numeroSolicitacao,
           tiposProdutos,
+          statusSolicitacao,
           dataCriacao: new Date().toISOString()
         };
 
@@ -180,6 +193,7 @@ export function TelaObra({ onBack }: TelaObraProps) {
       setNomeObra('');
       setNumeroSolicitacao('');
       setTiposProdutos('');
+      setStatusSolicitacao('Aberto');
       setItems([{ tempId: '1', produto: '', unidade: '', quantidade: 1, orcamentoObra: 0 }]);
 
       // Recarregar lista
@@ -197,6 +211,7 @@ export function TelaObra({ onBack }: TelaObraProps) {
     setNomeObra(obra.nomeObra);
     setNumeroSolicitacao(obra.numeroSolicitacao);
     setTiposProdutos(obra.tiposProdutos);
+    setStatusSolicitacao(obra.statusSolicitacao || 'Aberto');
 
     // Carregar itens
     const obraItems = await database.getObraItemsByObraId(obra.id!);
@@ -248,6 +263,7 @@ export function TelaObra({ onBack }: TelaObraProps) {
     setNomeObra('');
     setNumeroSolicitacao('');
     setTiposProdutos('');
+    setStatusSolicitacao('Aberto');
     setItems([{ tempId: '1', produto: '', unidade: '', quantidade: 1, orcamentoObra: 0 }]);
   };
 
@@ -287,7 +303,7 @@ export function TelaObra({ onBack }: TelaObraProps) {
           )}
 
           {/* Campos Obrigatórios */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div>
               <label className="block text-sm text-slate-700 mb-2">
                 Nome da Obra <span className="text-red-500">*</span>
@@ -326,6 +342,20 @@ export function TelaObra({ onBack }: TelaObraProps) {
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 placeholder="Ex: Materiais de Construção"
               />
+            </div>
+            <div>
+              <label className="block text-sm text-slate-700 mb-2">
+                Status <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={statusSolicitacao}
+                onChange={(e) => setStatusSolicitacao(e.target.value as StatusSolicitacao)}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              >
+                {STATUS_SOLICITACAO_OPTIONS.map((status) => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -464,6 +494,9 @@ export function TelaObra({ onBack }: TelaObraProps) {
                       Número Solicitação
                     </th>
                     <th className="px-4 py-3 text-left text-sm text-slate-700 border border-slate-200">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm text-slate-700 border border-slate-200">
                       Nome da Obra
                     </th>
                     <th className="px-4 py-3 text-left text-sm text-slate-700 border border-slate-200">
@@ -481,6 +514,11 @@ export function TelaObra({ onBack }: TelaObraProps) {
                   {obras.map((obra) => (
                     <tr key={obra.id} className="hover:bg-slate-50">
                       <td className="px-4 py-3 border border-slate-200">{obra.numeroSolicitacao}</td>
+                      <td className="px-4 py-3 border border-slate-200">
+                        <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold border rounded ${getStatusClassName(obra.statusSolicitacao)}`}>
+                          {obra.statusSolicitacao || 'Aberto'}
+                        </span>
+                      </td>
                       <td className="px-4 py-3 border border-slate-200">{obra.nomeObra}</td>
                       <td className="px-4 py-3 border border-slate-200">{obra.tiposProdutos}</td>
                       <td className="px-4 py-3 border border-slate-200 text-center">
@@ -591,6 +629,7 @@ function ObraPrintSection({ obra }: { obra: ObraRequest }) {
     <div className="mb-8 page-break-after">
       <div className="mb-4 pb-2 border-b-2 border-slate-300">
         <h2 className="text-xl font-bold">Solicitação: {obra.numeroSolicitacao}</h2>
+        <p className="text-sm">Status: {obra.statusSolicitacao || 'Aberto'}</p>
         <p className="text-sm">Obra: {obra.nomeObra}</p>
         <p className="text-sm">Tipos de Produtos: {obra.tiposProdutos}</p>
       </div>

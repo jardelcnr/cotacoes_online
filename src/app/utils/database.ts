@@ -3,6 +3,7 @@ export interface ObraRequest {
   nomeObra: string;
   numeroSolicitacao: string;
   tiposProdutos: string;
+  statusSolicitacao: 'Aberto' | 'Em Andamento' | 'Fechado';
   dataCriacao: string;
 }
 
@@ -24,6 +25,7 @@ export interface SupplierOffer {
   condicaoPagamento: string;
   prazoOrcamento: string;
   prazoEntrega: string;
+  observacoes: string;
   freteGeral: number;
   descontoGeral: number;
   dataCotacao: string;

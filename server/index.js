@@ -20,6 +20,7 @@ const obraRow = (row) => row && ({
   nomeObra: row.nome_obra,
   numeroSolicitacao: row.numero_solicitacao,
   tiposProdutos: row.tipos_produtos,
+  statusSolicitacao: row.status_solicitacao || 'Aberto',
   dataCriacao: row.data_criacao,
 });
 
@@ -41,6 +42,7 @@ const offerRow = (row) => row && ({
   condicaoPagamento: row.condicao_pagamento,
   prazoOrcamento: row.prazo_orcamento,
   prazoEntrega: row.prazo_entrega,
+  observacoes: row.observacoes || '',
   freteGeral: toNumber(row.frete_geral),
   descontoGeral: toNumber(row.desconto_geral),
   dataCotacao: row.data_cotacao,
@@ -91,10 +93,10 @@ app.get('/api/obra-requests', asyncRoute(async (_req, res) => {
 app.post('/api/obra-requests', asyncRoute(async (req, res) => {
   const obra = req.body;
   const { rows } = await query(
-    `INSERT INTO obra_requests (nome_obra, numero_solicitacao, tipos_produtos, data_criacao)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO obra_requests (nome_obra, numero_solicitacao, tipos_produtos, status_solicitacao, data_criacao)
+     VALUES ($1, $2, $3, $4, $5)
      RETURNING id`,
-    [obra.nomeObra, obra.numeroSolicitacao, obra.tiposProdutos, obra.dataCriacao]
+    [obra.nomeObra, obra.numeroSolicitacao, obra.tiposProdutos, obra.statusSolicitacao || 'Aberto', obra.dataCriacao]
   );
   res.status(201).json({ id: toNumber(rows[0].id) });
 }));
@@ -103,9 +105,9 @@ app.put('/api/obra-requests/:id', asyncRoute(async (req, res) => {
   const obra = req.body;
   await query(
     `UPDATE obra_requests
-     SET nome_obra = $1, numero_solicitacao = $2, tipos_produtos = $3, data_criacao = $4
-     WHERE id = $5`,
-    [obra.nomeObra, obra.numeroSolicitacao, obra.tiposProdutos, obra.dataCriacao, req.params.id]
+     SET nome_obra = $1, numero_solicitacao = $2, tipos_produtos = $3, status_solicitacao = $4, data_criacao = $5
+     WHERE id = $6`,
+    [obra.nomeObra, obra.numeroSolicitacao, obra.tiposProdutos, obra.statusSolicitacao || 'Aberto', obra.dataCriacao, req.params.id]
   );
   res.status(204).end();
 }));
@@ -190,8 +192,8 @@ app.post('/api/supplier-offers', asyncRoute(async (req, res) => {
   const { rows } = await query(
     `INSERT INTO supplier_offers
       (obra_id, numero_solicitacao, nome_empresa, nome_vendedor, condicao_pagamento,
-       prazo_orcamento, prazo_entrega, frete_geral, desconto_geral, data_cotacao)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       prazo_orcamento, prazo_entrega, observacoes, frete_geral, desconto_geral, data_cotacao)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
      RETURNING id`,
     [
       offer.obraId,
@@ -201,6 +203,7 @@ app.post('/api/supplier-offers', asyncRoute(async (req, res) => {
       offer.condicaoPagamento || '',
       offer.prazoOrcamento || '',
       offer.prazoEntrega || '',
+      offer.observacoes || '',
       offer.freteGeral || 0,
       offer.descontoGeral || 0,
       offer.dataCotacao,
@@ -215,8 +218,8 @@ app.put('/api/supplier-offers/:id', asyncRoute(async (req, res) => {
     `UPDATE supplier_offers
      SET obra_id = $1, numero_solicitacao = $2, nome_empresa = $3, nome_vendedor = $4,
          condicao_pagamento = $5, prazo_orcamento = $6, prazo_entrega = $7,
-         frete_geral = $8, desconto_geral = $9, data_cotacao = $10
-     WHERE id = $11`,
+         observacoes = $8, frete_geral = $9, desconto_geral = $10, data_cotacao = $11
+     WHERE id = $12`,
     [
       offer.obraId,
       offer.numeroSolicitacao,
@@ -225,6 +228,7 @@ app.put('/api/supplier-offers/:id', asyncRoute(async (req, res) => {
       offer.condicaoPagamento || '',
       offer.prazoOrcamento || '',
       offer.prazoEntrega || '',
+      offer.observacoes || '',
       offer.freteGeral || 0,
       offer.descontoGeral || 0,
       offer.dataCotacao,
@@ -344,12 +348,12 @@ app.post('/api/backup/import', asyncRoute(async (req, res) => {
 
     for (const obra of importData.data.obra_requests || []) {
       const result = await client.query(
-        `INSERT INTO obra_requests (nome_obra, numero_solicitacao, tipos_produtos, data_criacao)
-         VALUES ($1, $2, $3, $4)
+        `INSERT INTO obra_requests (nome_obra, numero_solicitacao, tipos_produtos, status_solicitacao, data_criacao)
+         VALUES ($1, $2, $3, $4, $5)
          ON CONFLICT (numero_solicitacao)
-         DO UPDATE SET nome_obra = EXCLUDED.nome_obra, tipos_produtos = EXCLUDED.tipos_produtos
+         DO UPDATE SET nome_obra = EXCLUDED.nome_obra, tipos_produtos = EXCLUDED.tipos_produtos, status_solicitacao = EXCLUDED.status_solicitacao
          RETURNING id`,
-        [obra.nomeObra, obra.numeroSolicitacao, obra.tiposProdutos, obra.dataCriacao]
+        [obra.nomeObra, obra.numeroSolicitacao, obra.tiposProdutos, obra.statusSolicitacao || 'Aberto', obra.dataCriacao]
       );
       idMaps.obras.set(Number(obra.id), Number(result.rows[0].id));
     }
@@ -370,8 +374,8 @@ app.post('/api/backup/import', asyncRoute(async (req, res) => {
       const result = await client.query(
         `INSERT INTO supplier_offers
           (obra_id, numero_solicitacao, nome_empresa, nome_vendedor, condicao_pagamento,
-           prazo_orcamento, prazo_entrega, frete_geral, desconto_geral, data_cotacao)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+           prazo_orcamento, prazo_entrega, observacoes, frete_geral, desconto_geral, data_cotacao)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
          RETURNING id`,
         [
           obraId,
@@ -381,6 +385,7 @@ app.post('/api/backup/import', asyncRoute(async (req, res) => {
           offer.condicaoPagamento || '',
           offer.prazoOrcamento || '',
           offer.prazoEntrega || '',
+          offer.observacoes || '',
           offer.freteGeral || 0,
           offer.descontoGeral || 0,
           offer.dataCotacao,

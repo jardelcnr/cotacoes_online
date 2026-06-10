@@ -269,7 +269,7 @@ export function TelaRelatorio({ onBack }: TelaRelatorioProps) {
                 <option value="">Selecione uma solicitação</option>
                 {obras.map(obra => (
                   <option key={obra.id} value={obra.numeroSolicitacao}>
-                    {obra.numeroSolicitacao} - {obra.nomeObra}
+                    [{obra.statusSolicitacao || 'Aberto'}] {obra.numeroSolicitacao} - {obra.nomeObra}
                   </option>
                 ))}
               </select>
@@ -342,10 +342,14 @@ export function TelaRelatorio({ onBack }: TelaRelatorioProps) {
                   <h2 className="text-xl font-bold text-slate-900 mb-3">
                     Solicitação: {relatorio.obra.numeroSolicitacao}
                   </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div>
                       <span className="text-slate-600">Nome da Obra:</span>
                       <p className="text-slate-900 font-semibold">{relatorio.obra.nomeObra}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-600">Status:</span>
+                      <p className="text-slate-900">{relatorio.obra.statusSolicitacao || 'Aberto'}</p>
                     </div>
                     <div>
                       <span className="text-slate-600">Tipos de Produtos:</span>
@@ -399,6 +403,12 @@ export function TelaRelatorio({ onBack }: TelaRelatorioProps) {
                         </div>
                       </div>
                     )}
+                    {relatorio.fornecedorMenorValor.offer.observacoes && (
+                      <div className="mt-3 pt-3 border-t border-green-300 text-sm">
+                        <span className="text-slate-600">ObservaÃ§Ãµes:</span>
+                        <p className="text-slate-900">{relatorio.fornecedorMenorValor.offer.observacoes}</p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -417,6 +427,7 @@ export function TelaRelatorio({ onBack }: TelaRelatorioProps) {
                           <th className="px-4 py-3 text-left text-slate-700 border border-slate-200">Condição Pagamento</th>
                           <th className="px-4 py-3 text-left text-slate-700 border border-slate-200">Prazo Orçamento</th>
                           <th className="px-4 py-3 text-left text-slate-700 border border-slate-200">Prazo Entrega</th>
+                          <th className="px-4 py-3 text-left text-slate-700 border border-slate-200">ObservaÃ§Ãµes</th>
                           <th className="px-4 py-3 text-right text-slate-700 border border-slate-200">Valor Total</th>
                           <th className="px-4 py-3 text-center text-slate-700 border border-slate-200">Data Cotação</th>
                         </tr>
@@ -443,6 +454,9 @@ export function TelaRelatorio({ onBack }: TelaRelatorioProps) {
                               </td>
                               <td className="px-4 py-3 border border-slate-200">
                                 {fornecedor.offer.prazoEntrega || '-'}
+                              </td>
+                              <td className="px-4 py-3 border border-slate-200">
+                                {fornecedor.offer.observacoes || '-'}
                               </td>
                               <td className={`px-4 py-3 border border-slate-200 text-right ${
                                 isMenorValor ? 'text-green-700 font-bold' : ''

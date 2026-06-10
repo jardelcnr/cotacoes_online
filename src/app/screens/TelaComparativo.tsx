@@ -76,6 +76,7 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
   const [condicaoPagamento, setCondicaoPagamento] = useState('');
   const [prazoOrcamento, setPrazoOrcamento] = useState('');
   const [prazoEntrega, setPrazoEntrega] = useState('');
+  const [observacoes, setObservacoes] = useState('');
   const [freteGeral, setFreteGeral] = useState(0);
   const [descontoGeral, setDescontoGeral] = useState(0);
 
@@ -106,7 +107,7 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [showAddModal, showEditModal, selectedObra, nomeEmpresa, nomeVendedor, condicaoPagamento, prazoOrcamento, prazoEntrega, freteGeral, descontoGeral, obraItemsWithValues, editingOfferId]);
+  }, [showAddModal, showEditModal, selectedObra, nomeEmpresa, nomeVendedor, condicaoPagamento, prazoOrcamento, prazoEntrega, observacoes, freteGeral, descontoGeral, obraItemsWithValues, editingOfferId]);
 
   const loadObras = async () => {
     const allObras = await database.getAllObraRequests();
@@ -152,6 +153,19 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
 
   const formatCurrency = (value: number): string => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
+
+  const formatUnitCurrency = (value: number): string => {
+    return value.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 4,
+      maximumFractionDigits: 4,
+    });
+  };
+
+  const parseDecimalInput = (value: string): number => {
+    return parseFloat(value.replace(',', '.')) || 0;
   };
 
   const findLowestValueForItem = (obraItemId: number): number | null => {
@@ -293,6 +307,7 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
         condicaoPagamento,
         prazoOrcamento,
         prazoEntrega,
+        observacoes,
         freteGeral,
         descontoGeral,
         obraItemsWithValues,
@@ -335,6 +350,7 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
           setCondicaoPagamento(draftData.condicaoPagamento || '');
           setPrazoOrcamento(draftData.prazoOrcamento || '');
           setPrazoEntrega(draftData.prazoEntrega || '');
+          setObservacoes(draftData.observacoes || '');
           setFreteGeral(draftData.freteGeral || 0);
           setDescontoGeral(draftData.descontoGeral || 0);
 
@@ -392,6 +408,7 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
     setCondicaoPagamento('');
     setPrazoOrcamento('');
     setPrazoEntrega('');
+    setObservacoes('');
     setFreteGeral(0);
     setDescontoGeral(0);
     setObraItemsWithValues([]);
@@ -426,6 +443,7 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
     setCondicaoPagamento(fornecedor.offer.condicaoPagamento);
     setPrazoOrcamento(fornecedor.offer.prazoOrcamento);
     setPrazoEntrega(fornecedor.offer.prazoEntrega);
+    setObservacoes(fornecedor.offer.observacoes || '');
     setFreteGeral(fornecedor.offer.freteGeral);
     setDescontoGeral(fornecedor.offer.descontoGeral);
 
@@ -451,6 +469,7 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
     setCondicaoPagamento('');
     setPrazoOrcamento('');
     setPrazoEntrega('');
+    setObservacoes('');
     setFreteGeral(0);
     setDescontoGeral(0);
     setObraItemsWithValues([]);
@@ -484,6 +503,7 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
           condicaoPagamento,
           prazoOrcamento,
           prazoEntrega,
+          observacoes,
           freteGeral,
           descontoGeral,
           dataCotacao: new Date().toISOString()
@@ -528,6 +548,7 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
           condicaoPagamento,
           prazoOrcamento,
           prazoEntrega,
+          observacoes,
           freteGeral,
           descontoGeral,
           dataCotacao: new Date().toISOString()
@@ -641,6 +662,15 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
                     placeholder="Ex: 30 dias"
                   />
                 </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm text-slate-700 mb-2">ObservaÃ§Ãµes</label>
+                  <textarea
+                    value={observacoes}
+                    onChange={(e) => setObservacoes(e.target.value)}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-24"
+                    placeholder="ObservaÃ§Ãµes da cotaÃ§Ã£o"
+                  />
+                </div>
               </div>
             </div>
 
@@ -666,13 +696,12 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
                         <td className="px-3 py-2 border border-slate-200">{item.quantidade}</td>
                         <td className="px-3 py-2 border border-slate-200">
                           <input
-                            type="number"
+                            type="text"
+                            inputMode="decimal"
                             value={item.valorUnitario === 0 ? '' : item.valorUnitario}
-                            onChange={(e) => updateItemValue(item.id!, parseFloat(e.target.value) || 0)}
+                            onChange={(e) => updateItemValue(item.id!, parseDecimalInput(e.target.value))}
                             className="w-full px-2 py-1 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
+                            placeholder="0,0000"
                           />
                         </td>
                         <td className="px-3 py-2 border border-slate-200 bg-slate-50">
@@ -830,6 +859,15 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
                     placeholder="Ex: 30 dias"
                   />
                 </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm text-slate-700 mb-2">ObservaÃ§Ãµes</label>
+                  <textarea
+                    value={observacoes}
+                    onChange={(e) => setObservacoes(e.target.value)}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-24"
+                    placeholder="ObservaÃ§Ãµes da cotaÃ§Ã£o"
+                  />
+                </div>
               </div>
             </div>
 
@@ -855,13 +893,12 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
                         <td className="px-3 py-2 border border-slate-200">{item.quantidade}</td>
                         <td className="px-3 py-2 border border-slate-200">
                           <input
-                            type="number"
+                            type="text"
+                            inputMode="decimal"
                             value={item.valorUnitario === 0 ? '' : item.valorUnitario}
-                            onChange={(e) => updateItemValue(item.id!, parseFloat(e.target.value) || 0)}
+                            onChange={(e) => updateItemValue(item.id!, parseDecimalInput(e.target.value))}
                             className="w-full px-2 py-1 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
+                            placeholder="0,0000"
                           />
                         </td>
                         <td className="px-3 py-2 border border-slate-200 bg-slate-50">
@@ -1010,7 +1047,7 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
                   <option value="">Selecione uma obra</option>
                   {obras.map(obra => (
                     <option key={obra.id} value={obra.numeroSolicitacao}>
-                      {obra.numeroSolicitacao} - {obra.nomeObra} - {obra.tiposProdutos}
+                      [{obra.statusSolicitacao || 'Aberto'}] {obra.numeroSolicitacao} - {obra.nomeObra} - {obra.tiposProdutos}
                     </option>
                   ))}
                 </select>
@@ -1038,6 +1075,7 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
                     <div className="text-xs text-slate-600">
                       <strong>Obra:</strong> {comparativoData.obra.nomeObra} |
                       <strong> Solicitação:</strong> {comparativoData.obra.numeroSolicitacao} |
+                      <strong> Status:</strong> {comparativoData.obra.statusSolicitacao || 'Aberto'} |
                       <strong> Produtos:</strong> {comparativoData.obra.tiposProdutos}
                     </div>
                   </div>
@@ -1047,7 +1085,7 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
               {/* Informações da Obra - Tela */}
               <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200 print:hidden">
                 <h3 className="text-lg text-slate-900 mb-2">Informações da Obra</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                   <div>
                     <span className="text-slate-600">Nome da Obra:</span>
                     <p className="text-slate-900">{comparativoData.obra.nomeObra}</p>
@@ -1055,6 +1093,10 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
                   <div>
                     <span className="text-slate-600">Número da Solicitação:</span>
                     <p className="text-slate-900">{comparativoData.obra.numeroSolicitacao}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-600">Status:</span>
+                    <p className="text-slate-900">{comparativoData.obra.statusSolicitacao || 'Aberto'}</p>
                   </div>
                   <div>
                     <span className="text-slate-600">Tipos de Produtos:</span>
@@ -1109,7 +1151,7 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
                                     isLowest ? 'bg-green-200 font-bold' : ''
                                   }`}
                                 >
-                                  {offerItem ? formatCurrency(offerItem.valorUnitario) : '-'}
+                                  {offerItem ? formatUnitCurrency(offerItem.valorUnitario) : '-'}
                                   {isLowest && <span className="ml-1">★</span>}
                                 </td>
                                 <td className="px-2 py-1 border border-slate-400 text-right bg-slate-50">
@@ -1168,6 +1210,12 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
                             <div className="flex justify-between">
                               <span className="text-slate-600">Prazo Entr.:</span>
                               <span>{fornecedor.offer.prazoEntrega}</span>
+                            </div>
+                          )}
+                          {fornecedor.offer.observacoes && (
+                            <div className="pt-1">
+                              <span className="text-slate-600">Obs.:</span>
+                              <span className="block">{fornecedor.offer.observacoes}</span>
                             </div>
                           )}
                           <div className={`flex justify-between pt-2 mt-2 border-t border-slate-300 ${
@@ -1255,7 +1303,7 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
                                 >
                                   {offerItem ? (
                                     <>
-                                      {formatCurrency(offerItem.valorUnitario)}
+                                      {formatUnitCurrency(offerItem.valorUnitario)}
                                       {isLowest && (
                                         <span className="ml-2 text-xs">★ Menor</span>
                                       )}
@@ -1335,6 +1383,12 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
                           <div className="flex justify-between">
                             <span className="text-slate-600">Prazo Entrega:</span>
                             <span className="text-slate-900">{fornecedor.offer.prazoEntrega}</span>
+                          </div>
+                        )}
+                        {fornecedor.offer.observacoes && (
+                          <div>
+                            <span className="text-slate-600">ObservaÃ§Ãµes:</span>
+                            <p className="text-slate-900">{fornecedor.offer.observacoes}</p>
                           </div>
                         )}
                       </div>
