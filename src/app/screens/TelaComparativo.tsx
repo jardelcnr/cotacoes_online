@@ -23,6 +23,12 @@ interface ComparativoData {
   }[];
 }
 
+type StatusSolicitacao = ObraRequest['statusSolicitacao'];
+type StatusFilter = 'Todos' | StatusSolicitacao;
+
+const STATUS_SOLICITACAO_OPTIONS: StatusSolicitacao[] = ['Aberto', 'Em Andamento', 'Fechado'];
+const STATUS_FILTER_OPTIONS: StatusFilter[] = ['Todos', ...STATUS_SOLICITACAO_OPTIONS];
+
 const PRINT_LANDSCAPE_STYLE_ID = 'comparativo-print-landscape';
 const PRINT_LANDSCAPE_STYLE = `
   @media print {
@@ -61,6 +67,7 @@ const openPrintDialogInLandscape = () => {
 
 export function TelaComparativo({ onBack }: TelaComparativoProps) {
   const [obras, setObras] = useState<ObraRequest[]>([]);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('Todos');
   const [selectedObra, setSelectedObra] = useState<ObraRequest | null>(null);
   const [comparativoData, setComparativoData] = useState<ComparativoData | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -84,6 +91,10 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
   const [hasDraft, setHasDraft] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const filteredObras = statusFilter === 'Todos'
+    ? obras
+    : obras.filter((obra) => (obra.statusSolicitacao || 'Aberto') === statusFilter);
 
   useEffect(() => {
     loadObras();
@@ -113,6 +124,19 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
   const loadObras = async () => {
     const allObras = await database.getAllObraRequests();
     setObras(allObras);
+  };
+
+  const handleStatusFilterChange = (status: StatusFilter) => {
+    setStatusFilter(status);
+
+    if (
+      status !== 'Todos' &&
+      selectedObra &&
+      (selectedObra.statusSolicitacao || 'Aberto') !== status
+    ) {
+      setSelectedObra(null);
+      setComparativoData(null);
+    }
   };
 
   const handleSelectObra = async (numeroSolicitacao: string) => {
@@ -1057,8 +1081,22 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
         <div className="bg-white rounded-2xl shadow-lg p-8">
           {/* Seleção de Obra e Botão Adicionar */}
           <div className="mb-8 print:hidden">
-            <div className="flex gap-4 items-end">
-              <div className="flex-1">
+            <div className="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_auto] gap-4 items-end">
+              <div>
+                <label className="block text-sm text-slate-700 mb-2">
+                  Filtrar por status
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => handleStatusFilterChange(e.target.value as StatusFilter)}
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  {STATUS_FILTER_OPTIONS.map((status) => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
                 <label className="block text-sm text-slate-700 mb-2">
                   Selecionar Obra para Comparação
                 </label>
@@ -1068,7 +1106,7 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
                   <option value="">Selecione uma obra</option>
-                  {obras.map(obra => (
+                  {filteredObras.map(obra => (
                     <option key={obra.id} value={obra.numeroSolicitacao}>
                       [{obra.statusSolicitacao || 'Aberto'}] {obra.numeroSolicitacao} - {obra.nomeObra} - {obra.tiposProdutos}
                     </option>

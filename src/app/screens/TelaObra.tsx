@@ -17,8 +17,10 @@ interface ItemRow {
 }
 
 type StatusSolicitacao = ObraRequest['statusSolicitacao'];
+type StatusFilter = 'Todos' | StatusSolicitacao;
 
 const STATUS_SOLICITACAO_OPTIONS: StatusSolicitacao[] = ['Aberto', 'Em Andamento', 'Fechado'];
+const STATUS_FILTER_OPTIONS: StatusFilter[] = ['Todos', ...STATUS_SOLICITACAO_OPTIONS];
 
 const getStatusClassName = (status: StatusSolicitacao = 'Aberto') => {
   if (status === 'Fechado') return 'bg-slate-100 text-slate-700 border-slate-300';
@@ -35,8 +37,13 @@ export function TelaObra({ onBack }: TelaObraProps) {
     { tempId: '1', produto: '', unidade: '', quantidade: 1, orcamentoObra: 0 }
   ]);
   const [obras, setObras] = useState<ObraRequest[]>([]);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('Todos');
   const [editingObraId, setEditingObraId] = useState<number | null>(null);
   const [success, setSuccess] = useState('');
+
+  const filteredObras = statusFilter === 'Todos'
+    ? obras
+    : obras.filter((obra) => (obra.statusSolicitacao || 'Aberto') === statusFilter);
 
   useEffect(() => {
     loadObras();
@@ -274,7 +281,7 @@ export function TelaObra({ onBack }: TelaObraProps) {
 
   return (
     <>
-      <PrintableObraList obras={obras} />
+      <PrintableObraList obras={filteredObras} />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8 px-4">
         <div className="max-w-7xl mx-auto">
         {/* Header */}
@@ -472,19 +479,37 @@ export function TelaObra({ onBack }: TelaObraProps) {
 
         {/* Listagem de Obras */}
         <div className="bg-white rounded-2xl shadow-lg p-8">
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-6">
             <h2 className="text-xl text-slate-900">Obras Cadastradas</h2>
-            <button
-              onClick={handlePrintList}
-              className="flex items-center gap-2 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors print:hidden"
-            >
-              <Printer size={20} />
-              <span>Imprimir Lista</span>
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3 print:hidden">
+              <div>
+                <label className="block text-sm text-slate-700 mb-2">
+                  Filtrar por status
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+                  className="w-full sm:w-52 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                >
+                  {STATUS_FILTER_OPTIONS.map((status) => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                onClick={handlePrintList}
+                className="flex items-center justify-center gap-2 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors sm:self-end"
+              >
+                <Printer size={20} />
+                <span>Imprimir Lista</span>
+              </button>
+            </div>
           </div>
 
           {obras.length === 0 ? (
             <p className="text-slate-600 text-center py-8">Nenhuma obra cadastrada ainda.</p>
+          ) : filteredObras.length === 0 ? (
+            <p className="text-slate-600 text-center py-8">Nenhuma obra encontrada para o status selecionado.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
@@ -511,7 +536,7 @@ export function TelaObra({ onBack }: TelaObraProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {obras.map((obra) => (
+                  {filteredObras.map((obra) => (
                     <tr key={obra.id} className="hover:bg-slate-50">
                       <td className="px-4 py-3 border border-slate-200">{obra.numeroSolicitacao}</td>
                       <td className="px-4 py-3 border border-slate-200">
