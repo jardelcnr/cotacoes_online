@@ -1279,6 +1279,14 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
                               <span className="block">{fornecedor.offer.observacoes}</span>
                             </div>
                           )}
+                          <div className="flex justify-between pt-2 mt-2 border-t border-slate-300">
+                            <span className="text-slate-600">Frete:</span>
+                            <span>{formatCurrency(fornecedor.offer.freteGeral)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-600">Desconto:</span>
+                            <span>{formatCurrency(fornecedor.offer.descontoGeral)}</span>
+                          </div>
                           <div className={`flex justify-between pt-2 mt-2 border-t border-slate-300 ${
                             isLowestOrcamento ? 'bg-green-200 -mx-3 px-3 py-2' : ''
                           }`}>
