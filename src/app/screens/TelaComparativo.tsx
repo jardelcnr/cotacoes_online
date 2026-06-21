@@ -710,12 +710,12 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm text-slate-700 mb-2">ObservaÃ§Ãµes</label>
+                  <label className="block text-sm text-slate-700 mb-2">Observacoe</label>
                   <textarea
                     value={observacoes}
                     onChange={(e) => setObservacoes(e.target.value)}
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-24"
-                    placeholder="ObservaÃ§Ãµes da cotaÃ§Ã£o"
+                    placeholder="Observacoes da cotacoes"
                   />
                 </div>
               </div>
@@ -907,12 +907,12 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm text-slate-700 mb-2">ObservaÃ§Ãµes</label>
+                  <label className="block text-sm text-slate-700 mb-2">Observacoe</label>
                   <textarea
                     value={observacoes}
                     onChange={(e) => setObservacoes(e.target.value)}
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-24"
-                    placeholder="ObservaÃ§Ãµes da cotaÃ§Ã£o"
+                    placeholder="Observacoes da cotacao"
                   />
                 </div>
               </div>
@@ -1448,7 +1448,7 @@ export function TelaComparativo({ onBack }: TelaComparativoProps) {
                         )}
                         {fornecedor.offer.observacoes && (
                           <div>
-                            <span className="text-slate-600">ObservaÃ§Ãµes:</span>
+                            <span className="text-slate-600">Observacoes:</span>
                             <p className="text-slate-900">{fornecedor.offer.observacoes}</p>
                           </div>
                         )}
