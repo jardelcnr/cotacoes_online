@@ -112,7 +112,9 @@ export async function initSchema() {
       ADD COLUMN IF NOT EXISTS status_solicitacao TEXT NOT NULL DEFAULT 'Aberto';
 
     ALTER TABLE supplier_offers
-      ADD COLUMN IF NOT EXISTS observacoes TEXT NOT NULL DEFAULT '';
+      ADD COLUMN IF NOT EXISTS observacoes TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS frete_geral NUMERIC(14, 2) NOT NULL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS desconto_geral NUMERIC(14, 2) NOT NULL DEFAULT 0;
 
     ALTER TABLE offer_items
       ALTER COLUMN valor_unitario TYPE NUMERIC(14, 4),
